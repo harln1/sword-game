@@ -275,3 +275,30 @@ body.reduce-motion .shards { display: none; }
 body.reduce-motion .stage.fx-destroy::after { display: none; }
 
 .hold-hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }
+
+/* ---------- 라이트 모드 ---------- */
+body.light {
+  --bg: #f3f5fb; --bg2: #ffffff; --panel: #ffffff; --line: #d6dcea;
+  --text: #1b2033; --muted: #5b6480; --gold: #a87400; --ok: #15803d;
+  --warn: #b45309; --bad: #dc2626; --accent: #3b5bdb;
+  background: radial-gradient(1200px 600px at 30% -10%, #dfe6ff 0%, var(--bg) 60%) fixed, var(--bg);
+}
+body.light .stage { background: linear-gradient(180deg, #2a3158 0%, #1a1f38 100%); color: #e9ecf5; }
+body.light .stage .sword-name, body.light .stage .odds-legend { color: #b8c0dc; }
+body.light .stage .odds-legend b { color: #ffffff; }
+body.light .stage .result.ok { color: #4ade80; }
+body.light .stage .result.warn { color: #fbbf24; }
+body.light .stage .result.bad { color: #f87171; }
+body.light .stage .result.money { color: #f5c542; }
+body.light .stage .btn:not(.primary) { background: #1c2138; color: #e9ecf5; border-color: #2c3354; }
+body.light .stage .btn small { color: #b8c0dc; }
+body.light .stage .hold-hint { color: #b8c0dc; }
+body.light kbd { background: #eef1f8; color: var(--text); }
+body.light .stage kbd { background: #0b0e1a; color: #e9ecf5; border-color: #2c3354; }
+body.light .codex .cell { background: #1a1f38; }
+body.light table.data th, body.light .odds-table th { background: #eef1f8; }
+body.light .save-view { background: #eef1f8; }
+body.light .notice { background: #fff4d6; border-color: #e0b84a; color: #6b4e00; }
+body.light .notice.info { background: #e3ecff; border-color: #9db4f0; color: #1e3a8a; }
+body.light .overlay-card { color: var(--text); }
+body.light .overlay-card p b { color: var(--text); }

@@ -153,6 +153,10 @@
     try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
   })();
 
+  const prefersLight = (() => {
+    try { return window.matchMedia('(prefers-color-scheme: light)').matches; } catch (e) { return false; }
+  })();
+
   function defaultSave() {
     const codex = new Array(CONFIG.maxLevel + 1).fill(false);
     codex[0] = true;
@@ -163,7 +167,7 @@
       plays: 0,
       totalDestroyed: 0,
       codex,
-      settings: { mute: false, reduceMotion: prefersReduced, decay: CONFIG.defaultDecay },
+      settings: { mute: false, reduceMotion: prefersReduced, decay: CONFIG.defaultDecay, theme: prefersLight ? 'light' : 'dark' },
       logs: [],
     };
   }
@@ -218,6 +222,9 @@
     if (s && typeof s === 'object') {
       if (typeof s.mute === 'boolean') d.settings.mute = s.mute; else fixed.push('settings.mute');
       if (typeof s.reduceMotion === 'boolean') d.settings.reduceMotion = s.reduceMotion; else fixed.push('settings.reduceMotion');
+      // theme은 나중에 추가된 항목: 없으면 조용히 기본값, 잘못된 값이면 복구 대상
+      if (s.theme === 'light' || s.theme === 'dark') d.settings.theme = s.theme;
+      else if (s.theme !== undefined) fixed.push('settings.theme');
       if (CONFIG.decayOptions.includes(s.decay)) d.settings.decay = s.decay; else fixed.push('settings.decay');
     } else fixed.push('settings');
     if (Array.isArray(parsed.logs)) {
@@ -738,6 +745,17 @@
     el.mute.checked = save.settings.mute;
     el.motion.checked = save.settings.reduceMotion;
     document.body.classList.toggle('reduce-motion', save.settings.reduceMotion);
+    applyTheme();
+  }
+
+  function applyTheme() {
+    const light = save.settings.theme === 'light';
+    document.body.classList.toggle('light', light);
+    const btn = document.getElementById('themeBtn');
+    if (btn) {
+      btn.textContent = light ? '🌙 다크 모드' : '☀️ 라이트 모드';
+      btn.setAttribute('aria-label', light ? '다크 모드로 바꾸기' : '라이트 모드로 바꾸기');
+    }
   }
 
   function button(label, onClick, primary) {
@@ -1022,6 +1040,12 @@
       if (save.settings.mute) stopAllSounds();
       persist();
       el.mute.blur();
+    });
+    document.getElementById('themeBtn').addEventListener('click', (e) => {
+      save.settings.theme = save.settings.theme === 'light' ? 'dark' : 'light';
+      applyTheme();
+      persist();
+      e.currentTarget.blur();
     });
     el.motion.addEventListener('change', () => {
       save.settings.reduceMotion = el.motion.checked;
