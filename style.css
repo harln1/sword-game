@@ -273,3 +273,5 @@ body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after 
 }
 body.reduce-motion .shards { display: none; }
 body.reduce-motion .stage.fx-destroy::after { display: none; }
+
+.hold-hint { margin: 10px 0 0; font-size: 0.85rem; color: var(--muted); text-align: center; }

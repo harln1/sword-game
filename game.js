@@ -967,12 +967,12 @@
     switch (e.code) {
       case 'Space':
         e.preventDefault();
-        if (e.repeat) return;
+        // 꾹 누르면 키보드 반복 입력 이벤트마다 강화 1회씩 (이벤트 1건 = 강화 1회)
         counters.enhanceInputs++;
         enhance();
         return;
       case 'KeyS':
-        if (!e.repeat) sell();
+        sell(); // 꾹 누르면 반복 입력 이벤트마다 판매 1회
         break;
       case 'KeyP':
       case 'Escape':
