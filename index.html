@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>검 강화하기</title>
+  <meta name="description" content="검을 +10까지 강화하는 브라우저 게임" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2l3 4v16h-6V6z' fill='%23cfd8e3'/%3E%3Crect x='9' y='22' width='14' height='3' fill='%23d4a017'/%3E%3Crect x='14.5' y='25' width='3' height='5' fill='%236b4423'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip" href="#guide">게임 설명으로 건너뛰기</a>
+
+  <header class="topbar">
+    <h1 class="title"><span aria-hidden="true">⚔</span> 검 강화하기</h1>
+    <dl class="chips" aria-label="현재 게임 상태">
+      <div class="chip"><dt>상태</dt><dd id="phaseText">준비</dd></div>
+      <div class="chip gold"><dt>골드</dt><dd id="goldText">15,000 G</dd></div>
+      <div class="chip"><dt>경과 시간</dt><dd id="timeText">00:00</dd></div>
+      <div class="chip"><dt>난이도 값</dt><dd id="decayText">8</dd></div>
+    </dl>
+    <button type="button" class="btn ghost" id="pauseBtn">일시정지 (P)</button>
+  </header>
+
+  <div id="notice" class="notice" role="status" hidden></div>
+
+  <main class="layout">
+    <section class="stage" id="stage" aria-label="게임 화면">
+      <div class="sword-area">
+        <div class="sword-wrap" id="swordWrap" aria-hidden="true"></div>
+        <div class="shards" id="shards" aria-hidden="true"></div>
+      </div>
+      <div class="level-line">
+        <span class="level" id="levelText">+0</span>
+        <span class="sword-name" id="swordName">낡은 나무 막대</span>
+      </div>
+      <p class="result" id="resultText" role="status" aria-live="polite">강화 버튼을 눌러 시작하세요.</p>
+
+      <div class="odds" aria-label="이번 강화 확률">
+        <div class="odds-bar" id="oddsBar">
+          <span class="seg s" id="segS"></span><span class="seg f" id="segF"></span><span class="seg d" id="segD"></span>
+        </div>
+        <div class="odds-legend">
+          <span><i class="dot s"></i>성공 <b id="oddS">100%</b></span>
+          <span><i class="dot f"></i><span id="failLabel">유지</span> <b id="oddF">0%</b></span>
+          <span><i class="dot d"></i>파괴 <b id="oddD">0%</b></span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" id="enhanceBtn">
+          강화하기 <kbd>Space</kbd><small id="costText">비용 50 G</small>
+        </button>
+        <button type="button" class="btn" id="sellBtn">
+          판매하기 <kbd>S</kbd><small id="sellText">판매가 0 G</small>
+        </button>
+      </div>
+
+      <div class="overlay" id="overlay" role="dialog" aria-modal="false" aria-labelledby="ovTitle">
+        <div class="overlay-card">
+          <h2 id="ovTitle">⚔ 검 강화하기</h2>
+          <div id="ovBody"></div>
+          <div class="overlay-actions" id="ovActions"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="panel">
+        <h2>이번 판</h2>
+        <dl class="stats">
+          <div><dt>목표</dt><dd>+10</dd></div>
+          <div><dt>이번 판 최고</dt><dd id="roundMax">+0</dd></div>
+          <div><dt>강화 시도</dt><dd id="roundAttempts">0회</dd></div>
+          <div><dt>판매</dt><dd id="roundSells">0회</dd></div>
+          <div><dt>파괴</dt><dd id="roundDestroys">0회</dd></div>
+        </dl>
+        <ol class="history" id="history" aria-label="최근 결과"></ol>
+      </section>
+
+      <section class="panel">
+        <h2>보존 기록 <small>(새로고침해도 유지)</small></h2>
+        <dl class="stats">
+          <div><dt>최고 강화</dt><dd id="bestText">+0</dd></div>
+          <div><dt>클리어</dt><dd id="clearsText">0회</dd></div>
+          <div><dt>끝낸 판</dt><dd id="playsText">0판</dd></div>
+          <div><dt>누적 파괴</dt><dd id="destroyedText">0회</dd></div>
+        </dl>
+        <h3 class="sub">검 도감 <small id="codexCount">1 / 21</small></h3>
+        <div class="codex" id="codex"></div>
+      </section>
+
+      <section class="panel">
+        <h2>설정</h2>
+        <label class="toggle"><input type="checkbox" id="muteToggle" /> 소리 끄기 (음소거)</label>
+        <label class="toggle"><input type="checkbox" id="motionToggle" /> 움직임 줄이기 (흔들림·번쩍임 끄기)</label>
+      </section>
+    </aside>
+  </main>
+
+  <section class="guide" id="guide">
+    <h2>게임 설명</h2>
+    <div class="guide-grid">
+      <article>
+        <h3>목표와 규칙</h3>
+        <ul>
+          <li><b>성공:</b> 검을 <b>+10</b>까지 강화하면 클리어예요.</li>
+          <li><b>실패:</b> 골드가 강화 비용보다 적고 팔 검도 없으면(+0) <b>파산</b>으로 끝나요.</li>
+          <li>강화할 때마다 비용을 내요. 단계가 높을수록 비용은 오르고 성공 확률은 내려가요.</li>
+          <li>+0~+4에서 실패하면 단계가 <b>유지</b>되고, +5부터는 한 단계 <b>하락</b>해요.</li>
+          <li>+6부터는 <b>파괴</b>될 수 있어요. 파괴되면 +0 나무 막대로 돌아가요.</li>
+          <li>검을 <b>판매</b>하면 골드를 받고 +0부터 다시 시작해요. 더 강화할지, 팔아서 자금을 마련할지 판단하세요.</li>
+          <li>+10을 달성한 뒤에는 <b>계속 도전</b>으로 +20까지 최고 기록에 도전할 수 있어요.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>조작</h3>
+        <table class="keys">
+          <tbody>
+            <tr><td><kbd>Space</kbd> 또는 강화 버튼</td><td>강화 1회 (한 번 누르면 정확히 한 번)</td></tr>
+            <tr><td><kbd>S</kbd> 또는 판매 버튼</td><td>현재 검 판매</td></tr>
+            <tr><td><kbd>P</kbd> / <kbd>Esc</kbd></td><td>일시정지 / 계속하기</td></tr>
+            <tr><td><kbd>Enter</kbd></td><td>시작 · 계속하기 · 새 게임</td></tr>
+            <tr><td><kbd>R</kbd></td><td>새 게임 (일시정지·종료 화면에서)</td></tr>
+            <tr><td><kbd>C</kbd></td><td>+10 달성 후 계속 도전</td></tr>
+          </tbody>
+        </table>
+        <p class="note">키를 누르고 있어도 자동 연타되지 않아요. 창이나 탭을 벗어나면 자동으로 일시정지되고, 일시정지 중에는 시간이 멈추고 입력이 반영되지 않아요.</p>
+      </article>
+      <article>
+        <h3>저장되는 것 / 초기화되는 것</h3>
+        <ul>
+          <li><b>새 판마다 초기화:</b> 현재 단계, 골드, 경과 시간, 시도·판매·파괴 횟수, 최근 결과</li>
+          <li><b>이 브라우저에 보존:</b> 최고 강화, 클리어 횟수, 끝낸 판 수, 누적 파괴, 검 도감, 설정, 플레이 기록</li>
+          <li>진행 중인 판은 저장하지 않아요. 새로고침하면 새 판으로 시작해요.</li>
+          <li>저장값이 비어 있거나 손상되어 있으면 기본값으로 시작하고, 화면 위에 안내가 나와요.</li>
+          <li>개인정보는 수집하지 않아요. 외부 서버와 통신하지 않고, 기록은 이 브라우저(localStorage)에만 남아요.</li>
+        </ul>
+      </article>
+      <article>
+        <h3>효과</h3>
+        <ul>
+          <li><b>강화 성공</b>할 때만: 검이 번쩍이고 상승음이 나요.</li>
+          <li><b>파괴</b>될 때만: 화면이 흔들리고 파편이 튀며 파괴음이 나요.</li>
+          <li>유지·하락·판매에는 효과가 없어요.</li>
+          <li><b>소리 끄기</b>를 켜면 재생 중인 소리까지 즉시 멈춰요. <b>움직임 줄이기</b>를 켜면 진행 중인 흔들림·번쩍임이 즉시 멈추고 이후에도 나오지 않아요.</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3>확률표 <small id="tableDecay">(난이도 값 8 기준)</small></h3>
+    <div class="table-scroll">
+      <table class="odds-table" id="oddsTable"></table>
+    </div>
+  </section>
+
+  <section class="records" id="records">
+    <h2>플레이 기록</h2>
+    <p class="note">판이 끝날 때마다(성공 또는 파산) 자동으로 기록돼요. 난이도 값을 바꾸고 같은 방식으로 플레이하면 아래 요약표에서 전후를 비교할 수 있어요.</p>
+    <div class="record-controls">
+      <label>난이도 값 (단계당 성공률 감소폭, %p)
+        <select id="decaySelect"></select>
+      </label>
+      <span class="note" id="decayNote">다음 판부터 적용돼요.</span>
+      <button type="button" class="btn small" id="csvBtn">기록 CSV 내보내기</button>
+    </div>
+    <h3>난이도 값별 요약</h3>
+    <div class="table-scroll"><table class="data" id="summaryTable"></table></div>
+    <h3>전체 기록 <small id="logCount">0판</small></h3>
+    <div class="table-scroll tall"><table class="data" id="logTable"></table></div>
+  </section>
+
+  <section class="tools">
+    <details id="toolsDetails">
+      <summary>검사 도구 (과제 확인용)</summary>
+      <div class="tools-grid">
+        <article>
+          <h3>입력 카운터</h3>
+          <dl class="stats" id="counterStats"></dl>
+          <button type="button" class="btn small" id="burstBtn">1초 동안 Space 10회 보내기</button>
+          <p class="note" id="burstResult">게임을 진행 중인 상태에서 누르세요. 골드가 충분할 때(게임 시작 직후) 하면 좋아요.</p>
+        </article>
+        <article>
+          <h3>효과 실행 횟수</h3>
+          <dl class="stats" id="fxStats"></dl>
+        </article>
+        <article>
+          <h3>저장 데이터</h3>
+          <p class="note">마지막 불러오기 결과: <b id="loadStatus">-</b></p>
+          <div class="tool-buttons">
+            <button type="button" class="btn small" id="showSaveBtn">저장값 보기</button>
+            <button type="button" class="btn small" id="emptySaveBtn">빈 저장값으로 새로고침</button>
+            <button type="button" class="btn small" id="corruptSaveBtn">손상된 저장값 넣고 새로고침</button>
+            <button type="button" class="btn small danger" id="resetSaveBtn">저장 데이터 전체 초기화</button>
+          </div>
+          <pre class="save-view" id="saveView" hidden></pre>
+        </article>
+      </div>
+    </details>
+  </section>
+
+  <footer class="footer">
+    <p>검 강화하기 · 그림은 모두 코드(SVG)로 직접 그렸어요 · 개인정보를 수집하지 않아요</p>
+  </footer>
+
+  <script src="game.js"></script>
+</body>
+</html>
